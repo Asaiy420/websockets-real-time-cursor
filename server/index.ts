@@ -30,24 +30,25 @@ const handleMessage = (bytes: WebSocket.RawData, uuid: string) => {
   const message = JSON.parse(bytes.toString());
   const user = users[uuid];
   if (!user) return;
-  user.state = message; 
+  user.state = message;
 
   broadcast();
-}; 
+};
 
 const handleClose = (uuid: string) => {
+  const user = users[uuid];
+  console.log(`${user?.username} disconnected`);
   delete connections[uuid];
-  delete users[uuid]
+  delete users[uuid];
 
   broadcast();
-
 };
 
 wss.on("connection", (connection, request: http.IncomingMessage) => {
   const requestUrl = request.url || "";
   const { username } = url.parse(requestUrl, true).query;
   const uuid = uuidv4();
-  console.log(username, uuid);
+  console.log(username, "with id :", uuid, "connected");
 
   connections[uuid] = connection;
 
