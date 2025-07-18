@@ -30,10 +30,10 @@ const handleMessage = (bytes: WebSocket.RawData, uuid: string) => {
   const message = JSON.parse(bytes.toString());
   const user = users[uuid];
   if (!user) return;
-  user.state = message;
+  user.state = message; 
 
   broadcast();
-};
+}; 
 
 const handleClose = (uuid: string) => {
   delete connections[uuid];
