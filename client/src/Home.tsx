@@ -35,9 +35,10 @@ export function Home({ username }: HomeProps) {
 
   const renderUserLists = (users: UsersMap) => {
     return (
-      <ul>
+      <ul className="user-list">
         {Object.keys(users).map((uuid) => {
-          return <li key={uuid}>{JSON.stringify(users[uuid])}</li>;
+          const user = users[uuid];
+          return <li key={uuid}>{user.username}</li>;
         })}
       </ul>
     );
@@ -48,18 +49,28 @@ export function Home({ username }: HomeProps) {
   const sendJsonMessageThrottled = useRef(throttle(sendJsonMessage, THROTTLE));
 
   useEffect(() => {
+    // Send initial cursor position
     sendJsonMessage({
       x: 0,
       y: 0,
     });
 
-    window.addEventListener("mousemove", (e: MouseEvent) => {
+    // Set up mouse movement handler with throttling
+    const handleMouseMove = ({ clientX, clientY }: MouseEvent) => {
       sendJsonMessageThrottled.current({
-        x: e.clientX,
-        y: e.clientY,
+        x: clientX,
+        y: clientY,
       });
-    });
-  }, []);
+    };
+
+    // Add the event listener
+    window.addEventListener("mousemove", handleMouseMove);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [sendJsonMessage]); // Include sendJsonMessage in dependencies
 
   if (
     lastJsonMessage &&
@@ -67,11 +78,15 @@ export function Home({ username }: HomeProps) {
     lastJsonMessage !== null
   ) {
     return (
-      <>
+      <div className="cursor-container">
+        <h1>Hello {username}</h1>
+        <div className="users-sidebar">
+          <h2>Active Users</h2>
+          {renderUserLists(lastJsonMessage as UsersMap)}
+        </div>
         {renderCursors(lastJsonMessage as UsersMap)}
-        {renderUserLists(lastJsonMessage as UsersMap)}
-      </>
+      </div>
     );
   }
-  return <h1>Hello {username}</h1>;
+  return <h1>Hello {username}, connecting...</h1>;
 }
